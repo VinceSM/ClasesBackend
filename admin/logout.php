@@ -1,38 +1,27 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';  
-require_once __DIR__ . '/../conexion.php';
+require_once __DIR__ . '/../admin/headerCors.php';
 
-// session_set_cookie_params([
-//   'lifetime' => 0,
-//   'path' => '/',
-//   'domain' => 'miramarinmobiliario.com.ar',
-//   'secure' => true,
-//   'httponly' => true,
-//   'samesite' => 'Lax'  // ✅ Más estable y aceptado
-// ]);
+// Iniciar sesión si no está iniciada
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-session_start();
-
-// 🔄 Limpiar variables de sesión
+// Destruir todas las variables de sesión
 $_SESSION = [];
 
-// 🔐 Destruir cookie de sesión si existe
-// if (isset($_COOKIE[session_name()])) {
-//     setcookie(session_name(), '', [
-//         'expires' => time() - 3600,
-//         'path' => '/',
-//         'domain' => 'miramarinmobiliario.com.ar',
-//         'secure' => true,
-//         'httponly' => true,
-//         'samesite' => 'None'
-//     ]);
-//     unset($_COOKIE[session_name()]);
-// }
+// Destruir la sesión
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+    );
+}
 
-// 💥 Destruir sesión
 session_destroy();
 
-// ✅ Respuesta JSON
-echo json_encode(['success' => true, 'message' => 'Sesión cerrada correctamente']);
-exit;
-?>
+// Responder al cliente
+echo json_encode([
+    "success" => true,
+    "message" => "Logout exitoso"
+]);

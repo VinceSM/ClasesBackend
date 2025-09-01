@@ -1,49 +1,40 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php';
+require_once "conexion.php"; // tu archivo de conexión
 
-// Verificar que llegan los datos
+// Validar que los datos lleguen por POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = isset($_POST['email']) ? trim($_POST['email']) : null;
-    $password = isset($_POST['password']) ? $_POST['password'] : null;
+    $email = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
-    if (!$email || !$password) {
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Faltan datos: email y password son requeridos'
-        ]);
-        exit;
+    // Validaciones básicas
+    if (empty($email) || empty($password)) {
+        die("Error: Debes ingresar email y password.");
     }
 
-    // Hashear la contraseña
-    $hashPass = password_hash($password, PASSWORD_BCRYPT);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        die("Error: El email no es válido.");
+    }
+
+    // Hashear la contraseña con algoritmo seguro (bcrypt por defecto)
+    $hashpass = password_hash($password, PASSWORD_DEFAULT);
 
     try {
-        $stmt = $conn->prepare("INSERT INTO admins (email, hashpass, created_at) VALUES (?, ?, NOW())");
-        $stmt->bind_param("ss", $email, $hashPass);
+        // Preparar sentencia segura contra inyección SQL
+        $stmt = $conn->prepare("INSERT INTO admin (email, hashpass, createdAt) VALUES (?, ?, NOW())");
+        $stmt->bind_param("ss", $email, $hashpass);
 
         if ($stmt->execute()) {
-            echo json_encode([
-                'status' => 'success',
-                'message' => 'Admin registrado correctamente'
-            ]);
+            echo "✅ Administrador creado correctamente.";
         } else {
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Error al registrar admin: ' . $stmt->error
-            ]);
+            echo "❌ Error al crear administrador: " . $stmt->error;
         }
 
         $stmt->close();
     } catch (Exception $e) {
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Excepción: ' . $e->getMessage()
-        ]);
+        echo "❌ Error en la base de datos: " . $e->getMessage();
     }
+
+    $conn->close();
 } else {
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Método no permitido'
-    ]);
+    echo "Acceso inválido.";
 }
