@@ -1,23 +1,26 @@
 <?php
 require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php';
+require_once __DIR__ . '/../conexion.php'; 
 
-$id = $_POST['id'] ?? null;
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id = intval($_POST["idEstados"]);
 
-if (!$id) {
-    echo json_encode(["success" => false, "message" => "ID de estado no proporcionado"]);
-    exit;
+    if ($id > 0) {
+        $sql = "UPDATE estados SET deletedAt = NOW() WHERE idEstados = ? AND deletedAt IS NULL";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Estado eliminado correctamente"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Error al eliminar estado"]);
+        }
+
+        $stmt->close();
+    } else {
+        echo json_encode(["status" => "error", "message" => "ID inválido"]);
+    }
 }
 
-$query = "UPDATE estados SET deleted_at = NOW() WHERE id = ?";
-$stmt = $conexion->prepare($query);
-$stmt->bind_param("i", $id);
-
-if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Estado eliminado correctamente"]);
-} else {
-    echo json_encode(["success" => false, "message" => "Error al eliminar el estado"]);
-}
-
-$stmt->close();
-$conexion->close();
+$conn->close();
+?>

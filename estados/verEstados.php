@@ -3,7 +3,7 @@ require_once __DIR__ . '/../admin/headerCors.php';
 require_once __DIR__ . '/../conexion.php'; 
 
 try {
-    $resultado = $conexion->query("SELECT * FROM estados");
+    $resultado = $conexion->query("SELECT estado FROM estados");
 
     $estados = [];
     while ($fila = $resultado->fetch_assoc()) {
