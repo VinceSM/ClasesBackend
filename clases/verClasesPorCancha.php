@@ -2,23 +2,23 @@
 require_once __DIR__ . '/../admin/headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-$fecha = $_GET['fecha'] ?? null;
+$idCancha = $_GET['idCancha'] ?? null;
 
-if (!$fecha) {
+if (!$idCancha) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Falta la fecha']);
+    echo json_encode(['success' => false, 'message' => 'Falta el id de la cancha']);
     exit;
 }
 
 $sql = "
-SELECT c.* 
+SELECT DISTINCT c.*
 FROM clases c
-JOIN horarios h ON c.Horarios_idHorarios = h.idHorarios
-WHERE h.fecha=? AND c.deletedAt IS NULL AND h.deletedAt IS NULL
+JOIN intervalos i ON c.idClases = i.Clases_idClases
+WHERE i.Canchas_idCanchas = ? AND c.deletedAt IS NULL AND i.deletedAt IS NULL
 ";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $fecha);
+$stmt->bind_param("i", $idCancha);
 $stmt->execute();
 $result = $stmt->get_result();
 
