@@ -1,26 +1,25 @@
 <?php
-header("Content-Type: application/json; charset=UTF-8");
+require_once "conexion.php";
 
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id = intval($_POST["idDeportes"]);
 
-if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-    echo json_encode(["error" => "Método no permitido"]);
-    exit;
-}
+    if ($id > 0) {
+        $sql = "UPDATE deportes SET deletedAt = NOW() WHERE idDeportes = ? AND deletedAt IS NULL";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
 
-if (!isset($_GET['id'])) {
-    echo json_encode(["error" => "Se requiere idDeporte"]);
-    exit;
-}
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Deporte eliminado correctamente"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Error al eliminar deporte"]);
+        }
 
-$id = intval($_GET['id']);
-$sql = "UPDATE Deportes SET deleted_at = NOW() WHERE idDeporte = $id";
-
-if ($conn->query($sql)) {
-    echo json_encode(["message" => "Deporte eliminado"]);
-} else {
-    echo json_encode(["error" => $conn->error]);
+        $stmt->close();
+    } else {
+        echo json_encode(["status" => "error", "message" => "ID inválido"]);
+    }
 }
 
 $conn->close();
+?>
