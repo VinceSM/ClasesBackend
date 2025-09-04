@@ -16,7 +16,7 @@ $idClase     = $data['idClase'] ?? null;
 $inicio      = $data['inicio'] ?? null;
 $fin         = $data['fin'] ?? null;
 $duracion    = $data['duracion'] ?? null;
-$activo      = $data['activo'] ?? null;
+$idEstado = $data['idEstado'] ?? null;
 
 if (!$idIntervalo) {
     http_response_code(400);
@@ -25,11 +25,11 @@ if (!$idIntervalo) {
 }
 
 $sql = "UPDATE intervalos 
-        SET idCancha = ?, idClase = ?, inicio = ?, fin = ?, duracion = ?, activo = ?, updatedAt = CURRENT_TIMESTAMP 
+        SET idCancha = ?, idClase = ?, inicio = ?, fin = ?, duracion = ?, idEstado = ?, updatedAt = CURRENT_TIMESTAMP 
         WHERE idIntervalo = ? AND deletedAt IS NULL";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("iissiii", $idCancha, $idClase, $inicio, $fin, $duracion, $activo, $idIntervalo);
+$stmt->bind_param("iissiii", $idCancha, $idClase, $inicio, $fin, $duracion, $idEstado, $idIntervalo);
 
 if ($stmt->execute()) {
     echo json_encode(['success' => true, 'message' => 'Intervalo actualizado correctamente']);

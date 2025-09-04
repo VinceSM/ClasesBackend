@@ -15,7 +15,7 @@ $idClase  = $data['idClase'] ?? null;
 $inicio   = $data['inicio'] ?? null;
 $fin      = $data['fin'] ?? null;
 $duracion = $data['duracion'] ?? null;
-$activo   = $data['activo'] ?? 1;
+$idEstado = $data['idEstado'] ?? null;
 
 if (!$idCancha || !$idClase || !$inicio || !$fin || !$duracion) {
     http_response_code(400);
@@ -23,10 +23,10 @@ if (!$idCancha || !$idClase || !$inicio || !$fin || !$duracion) {
     exit;
 }
 
-$sql = "INSERT INTO intervalos (idCancha, idClase, inicio, fin, duracion, activo) 
+$sql = "INSERT INTO intervalos (idCancha, idClase, inicio, fin, duracion, idEstado) 
         VALUES (?, ?, ?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("iissii", $idCancha, $idClase, $inicio, $fin, $duracion, $activo);
+$stmt->bind_param("iissii", $idCancha, $idClase, $inicio, $fin, $duracion, $idEstado);
 
 if ($stmt->execute()) {
     echo json_encode(['success' => true, 'message' => 'Intervalo creado correctamente']);

@@ -10,15 +10,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
 }
 
 if (!isset($_GET['id'])) {
-    echo json_encode(["error" => "Se requiere idClases"]);
+    echo json_encode(["error" => "Se requiere idDeporte"]);
     exit;
 }
 
 $id = intval($_GET['id']);
-$sql = "UPDATE clases SET deleted_at = NOW() WHERE idClases = $id";
+$sql = "UPDATE Deportes SET deleted_at = NOW() WHERE idDeporte = $id";
 
 if ($conn->query($sql)) {
-    echo json_encode(["message" => "Clase eliminada"]);
+    echo json_encode(["message" => "Deporte eliminado"]);
 } else {
     echo json_encode(["error" => $conn->error]);
 }

@@ -14,6 +14,7 @@ $idCancha = $data['idCancha'] ?? null;
 $nombre   = $data['nombre'] ?? null;
 $techada  = $data['techada'] ?? null;
 $idCiudad = $data['idCiudad'] ?? null;
+$idDeporte = $data['idDeporte'] ?? null;
 
 if (!$idCancha) {
     http_response_code(400);
@@ -22,11 +23,11 @@ if (!$idCancha) {
 }
 
 $sql = "UPDATE canchas 
-        SET nombre = ?, techada = ?, idCiudad = ?, updatedAt = CURRENT_TIMESTAMP 
+        SET nombre = ?, techada = ?, idCiudad = ?, idDeporte = ?, updatedAt = CURRENT_TIMESTAMP 
         WHERE idCancha = ? AND deletedAt IS NULL";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("siii", $nombre, $techada, $idCiudad, $idCancha);
+$stmt->bind_param("siiii", $nombre, $techada, $idCiudad, $idDeporte, $idCancha);
 
 if ($stmt->execute()) {
     echo json_encode(['success' => true, 'message' => 'Cancha modificada correctamente']);

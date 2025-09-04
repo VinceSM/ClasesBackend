@@ -13,16 +13,17 @@ $data = json_decode(file_get_contents("php://input"), true);
 $nombre   = $data['nombre'] ?? null;
 $techada  = $data['techada'] ?? 1; // por defecto 1
 $idCiudad = $data['idCiudad'] ?? null;
+$idDeporte = $data['idDeporte'] ?? null;
 
-if (!$nombre || !$idCiudad) {
+if (!$nombre || !$idCiudad || !$idDeporte) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Faltan datos requeridos']);
     exit;
 }
 
-$sql = "INSERT INTO canchas (nombre, techada, idCiudad) VALUES (?, ?, ?)";
+$sql = "INSERT INTO canchas (nombre, techada, idCiudad, idDeporte) VALUES (?, ?, ?, ?)";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("sii", $nombre, $techada, $idCiudad);
+$stmt->bind_param("siii", $nombre, $techada, $idCiudad, $idDeporte);
 
 if ($stmt->execute()) {
     echo json_encode(['success' => true, 'message' => 'Cancha creada correctamente']);
