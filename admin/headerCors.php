@@ -11,7 +11,7 @@
 //    'https://www.miramarinmobiliario.com.ar'
 // ];
 
-header('http://localhost:3000');
+header('http://localhost:5173');
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
