@@ -1,23 +1,23 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-$id = $_POST['id'] ?? null;
+$data = json_decode(file_get_contents("php://input"));
 
-if (!$id) {
-    echo json_encode(["success" => false, "message" => "ID de admin no proporcionado"]);
-    exit;
-}
+if (!empty($data->idAdmin)) {
+    $stmt = $conexion->prepare("UPDATE admin SET deletedAt = CURRENT_TIMESTAMP WHERE idAdmin = ?");
+    $stmt->bind_param("i", $data->idAdmin);
 
-$query = "UPDATE admins SET deleted_at = NOW() WHERE id = ?";
-$stmt = $conexion->prepare($query);
-$stmt->bind_param("i", $id);
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Admin eliminado correctamente"]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Error al eliminar admin"]);
+    }
 
-if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Admin eliminado correctamente"]);
+    $stmt->close();
 } else {
-    echo json_encode(["success" => false, "message" => "Error al eliminar el admin"]);
+    echo json_encode(["success" => false, "message" => "Falta idAdmin"]);
 }
 
-$stmt->close();
 $conexion->close();
+?>

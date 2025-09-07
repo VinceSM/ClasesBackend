@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
 // Iniciar sesión si no está iniciada
 if (session_status() == PHP_SESSION_NONE) {

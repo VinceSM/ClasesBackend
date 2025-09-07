@@ -1,40 +1,25 @@
 <?php
-require_once "conexion.php"; // tu archivo de conexión
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-// Validar que los datos lleguen por POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+$data = json_decode(file_get_contents("php://input"));
 
-    // Validaciones básicas
-    if (empty($email) || empty($password)) {
-        die("Error: Debes ingresar email y password.");
+if (!empty($data->email) && !empty($data->password) && !empty($data->rol) && !empty($data->profesorId)) {
+    $hashpass = password_hash($data->password, PASSWORD_BCRYPT);
+
+    $stmt = $conexion->prepare("INSERT INTO admin (email, hashpass, rol, Profesores_idProfesores) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("sssi", $data->email, $hashpass, $data->rol, $data->profesorId);
+
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Admin creado correctamente", "idAdmin" => $stmt->insert_id]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Error al crear admin"]);
     }
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        die("Error: El email no es válido.");
-    }
-
-    // Hashear la contraseña con algoritmo seguro (bcrypt por defecto)
-    $hashpass = password_hash($password, PASSWORD_DEFAULT);
-
-    try {
-        // Preparar sentencia segura contra inyección SQL
-        $stmt = $conn->prepare("INSERT INTO admin (email, hashpass, createdAt) VALUES (?, ?, NOW())");
-        $stmt->bind_param("ss", $email, $hashpass);
-
-        if ($stmt->execute()) {
-            echo "✅ Administrador creado correctamente.";
-        } else {
-            echo "❌ Error al crear administrador: " . $stmt->error;
-        }
-
-        $stmt->close();
-    } catch (Exception $e) {
-        echo "❌ Error en la base de datos: " . $e->getMessage();
-    }
-
-    $conn->close();
+    $stmt->close();
 } else {
-    echo "Acceso inválido.";
+    echo json_encode(["success" => false, "message" => "Datos incompletos"]);
 }
+
+$conexion->close();
+?>
