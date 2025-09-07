@@ -1,25 +1,31 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "GET") {
-    $idEstudiante = intval($_GET["idEstudiante"]);
+$idMembresia = $_GET['membresia'] ?? null;
 
-    $sql = "SELECT m.*
-            FROM estudiantes e
-            INNER JOIN membresias m ON e.Membresia_idMembresia = m.idMembresia
-            WHERE e.idEstudiantes = ? AND m.deletedAt IS NULL";
-    
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $idEstudiante);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    $membresia = $result->fetch_assoc();
-
-    echo json_encode($membresia ?: []);
-    
-    $stmt->close();
+if (!$idMembresia) {
+    echo json_encode(["success" => false, "message" => "Falta el id de la membresía"]);
+    exit;
 }
-$conn->close();
+
+$sql = "SELECT e.idEstudiantes, e.nombre, e.apellido, e.celular, e.edad, e.dni, e.nacimiento,
+               e.Nivel_idNivel, n.tipo AS nivel,
+               e.Membresia_idMembresia, m.tipo AS membresia
+        FROM estudiantes e
+        LEFT JOIN niveles n ON e.Nivel_idNivel = n.idNivel
+        LEFT JOIN membresias m ON e.Membresia_idMembresia = m.idMembresia
+        WHERE e.Membresia_idMembresia = ? AND e.deletedAt IS NULL";
+
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("i", $idMembresia);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$estudiantes = [];
+while ($row = $result->fetch_assoc()) {
+    $estudiantes[] = $row;
+}
+
+echo json_encode($estudiantes);
 ?>

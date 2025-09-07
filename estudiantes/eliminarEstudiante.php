@@ -1,25 +1,17 @@
 <?php
-
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-    echo json_encode(["error" => "Método no permitido"]);
-    exit;
+$data = json_decode(file_get_contents("php://input"), true);
+$id = $data['idEstudiantes'];
+
+try {
+    $stmt = $conexion->prepare("UPDATE estudiantes SET deletedAt=NOW() WHERE idEstudiantes=?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+
+    echo json_encode(["success" => true, "message" => "Estudiante eliminado correctamente"]);
+} catch (Exception $e) {
+    echo json_encode(["success" => false, "error" => $e->getMessage()]);
 }
-
-if (!isset($_GET['id'])) {
-    echo json_encode(["error" => "Se requiere idEstudiantes"]);
-    exit;
-}
-
-$id = intval($_GET['id']);
-$sql = "UPDATE estudiantes SET deleted_at = NOW() WHERE idEstudiantes = $id";
-
-if ($conn->query($sql)) {
-    echo json_encode(["message" => "Estudiante eliminado (soft delete)"]);
-} else {
-    echo json_encode(["error" => $conn->error]);
-}
-
-$conn->close();
+?>
