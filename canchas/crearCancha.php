@@ -1,36 +1,22 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
-    exit;
-}
+$data = json_decode(file_get_contents("php://input"));
 
-$data = json_decode(file_get_contents("php://input"), true);
+if (!empty($data->cancha) && isset($data->indoor)) {
+    $stmt = $conexion->prepare("INSERT INTO canchas (cancha, indoor) VALUES (?, ?)");
+    $stmt->bind_param("ii", $data->cancha, $data->indoor);
 
-$nombre   = $data['nombre'] ?? null;
-$techada  = $data['techada'] ?? 1; // por defecto 1
-$idCiudad = $data['idCiudad'] ?? null;
-$idDeporte = $data['idDeporte'] ?? null;
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Cancha creada correctamente"]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Error al crear cancha"]);
+    }
 
-if (!$nombre || !$idCiudad || !$idDeporte) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Faltan datos requeridos']);
-    exit;
-}
-
-$sql = "INSERT INTO canchas (nombre, techada, idCiudad, idDeporte) VALUES (?, ?, ?, ?)";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("siii", $nombre, $techada, $idCiudad, $idDeporte);
-
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Cancha creada correctamente']);
+    $stmt->close();
 } else {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error al crear la cancha']);
+    echo json_encode(["success" => false, "message" => "Datos incompletos"]);
 }
-
-$stmt->close();
-$conn->close();
+$conexion->close();
+?>

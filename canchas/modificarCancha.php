@@ -1,40 +1,22 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
-    exit;
-}
+$data = json_decode(file_get_contents("php://input"));
 
-$data = json_decode(file_get_contents("php://input"), true);
+if (!empty($data->idCancha) && !empty($data->cancha) && isset($data->indoor)) {
+    $stmt = $conexion->prepare("UPDATE canchas SET cancha = ?, indoor = ? WHERE idCancha = ? AND deletedAt IS NULL");
+    $stmt->bind_param("iii", $data->cancha, $data->indoor, $data->idCancha);
 
-$idCancha = $data['idCancha'] ?? null;
-$nombre   = $data['nombre'] ?? null;
-$techada  = $data['techada'] ?? null;
-$idCiudad = $data['idCiudad'] ?? null;
-$idDeporte = $data['idDeporte'] ?? null;
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Cancha modificada correctamente"]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Error al modificar cancha"]);
+    }
 
-if (!$idCancha) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Falta el idCancha']);
-    exit;
-}
-
-$sql = "UPDATE canchas 
-        SET nombre = ?, techada = ?, idCiudad = ?, idDeporte = ?, updatedAt = CURRENT_TIMESTAMP 
-        WHERE idCancha = ? AND deletedAt IS NULL";
-
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("siiii", $nombre, $techada, $idCiudad, $idDeporte, $idCancha);
-
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Cancha modificada correctamente']);
+    $stmt->close();
 } else {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error al modificar la cancha']);
+    echo json_encode(["success" => false, "message" => "Datos incompletos"]);
 }
-
-$stmt->close();
-$conn->close();
+$conexion->close();
+?>
