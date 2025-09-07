@@ -1,25 +1,17 @@
 <?php
-
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-    echo json_encode(["error" => "Método no permitido"]);
-    exit;
+$data = json_decode(file_get_contents("php://input"), true);
+$id = $data['idClases'];
+
+try {
+    $stmt = $conexion->prepare("UPDATE clases SET deletedAt=NOW() WHERE idClases=?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+
+    echo json_encode(["success" => true, "message" => "Clase eliminada correctamente"]);
+} catch (Exception $e) {
+    echo json_encode(["success" => false, "error" => $e->getMessage()]);
 }
-
-if (!isset($_GET['id'])) {
-    echo json_encode(["error" => "Se requiere idClases"]);
-    exit;
-}
-
-$id = intval($_GET['id']);
-$sql = "UPDATE clases SET deleted_at = NOW() WHERE idClases = $id";
-
-if ($conn->query($sql)) {
-    echo json_encode(["message" => "Clase eliminada"]);
-} else {
-    echo json_encode(["error" => $conn->error]);
-}
-
-$conn->close();
+?>

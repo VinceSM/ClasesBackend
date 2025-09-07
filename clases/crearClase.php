@@ -1,34 +1,35 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
-    exit;
+$data = json_decode(file_get_contents("php://input"), true);
+
+$nombre = $data['nombre'];
+$maxestudiante = $data['maxestudiante'] ?? null;
+$privada = $data['privada'];
+$horarioId = $data['Horarios_idHorarios'];
+$nivelId = $data['Niveles_idNivel'];
+$canchas = $data['canchas']; // array de idCanchas
+
+try {
+    $conexion->begin_transaction();
+
+    $stmt = $conexion->prepare("INSERT INTO clases (nombre, maxestudiante, privada, Horarios_idHorarios, Niveles_idNivel) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("siiii", $nombre, $maxestudiante, $privada, $horarioId, $nivelId);
+    $stmt->execute();
+    $idClase = $stmt->insert_id;
+
+    // Relación con canchas
+    $stmtRel = $conexion->prepare("INSERT INTO clases_has_canchas (Clases_idClases, Canchas_idCanchas) VALUES (?, ?)");
+    foreach ($canchas as $idCancha) {
+        $stmtRel->bind_param("ii", $idClase, $idCancha);
+        $stmtRel->execute();
+    }
+
+    $conexion->commit();
+    echo json_encode(["success" => true, "message" => "Clase creada correctamente"]);
+} catch (Exception $e) {
+    $conexion->rollback();
+    echo json_encode(["success" => false, "error" => $e->getMessage()]);
 }
-
-// Recibir parámetros por POST
-$maxestudiante = $_POST['maxestudiante'] ?? null;
-$Nivel_idNivel = $_POST['Nivel_idNivel'] ?? null;
-$Horarios_idHorarios = $_POST['Horarios_idHorarios'] ?? null;
-
-if (!$maxestudiante || !$Nivel_idNivel || !$Horarios_idHorarios) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Faltan datos requeridos']);
-    exit;
-}
-
-$sql = "INSERT INTO clases (maxestudiante, Nivel_idNivel, Horarios_idHorarios) VALUES (?, ?, ?)";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("iii", $maxestudiante, $Nivel_idNivel, $Horarios_idHorarios);
-
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Clase creada', 'idClase' => $stmt->insert_id]);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Error al crear clase']);
-}
-
-$stmt->close();
-$conn->close();
 ?>

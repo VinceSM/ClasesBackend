@@ -1,33 +1,31 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-$fecha = $_GET['fecha'] ?? null;
+$data = json_decode(file_get_contents("php://input"), true);
+$fecha = $data['fecha']; // formato YYYY-MM-DD
 
-if (!$fecha) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Falta la fecha']);
-    exit;
-}
+$sql = "SELECT c.idClases, c.nombre, c.maxestudiante, c.privada, 
+               c.Horarios_idHorarios, c.Niveles_idNivel,
+               h.fecha, h.hora_inicio, h.hora_fin,
+               GROUP_CONCAT(chc.Canchas_idCanchas) AS canchas
+        FROM clases c
+        INNER JOIN horarios h ON c.Horarios_idHorarios = h.idHorarios
+        LEFT JOIN clases_has_canchas chc ON c.idClases = chc.Clases_idClases
+        WHERE DATE(h.fecha) = ?
+          AND c.deletedAt IS NULL
+        GROUP BY c.idClases";
 
-$sql = "
-SELECT c.* 
-FROM clases c
-JOIN horarios h ON c.Horarios_idHorarios = h.idHorarios
-WHERE h.fecha=? AND c.deletedAt IS NULL AND h.deletedAt IS NULL
-";
-
-$stmt = $conn->prepare($sql);
+$stmt = $conexion->prepare($sql);
 $stmt->bind_param("s", $fecha);
 $stmt->execute();
 $result = $stmt->get_result();
 
 $clases = [];
 while ($row = $result->fetch_assoc()) {
+    $row['canchas'] = $row['canchas'] ? explode(",", $row['canchas']) : [];
     $clases[] = $row;
 }
 
 echo json_encode($clases);
-$stmt->close();
-$conn->close();
 ?>

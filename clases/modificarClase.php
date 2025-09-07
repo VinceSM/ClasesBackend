@@ -1,35 +1,38 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
-    exit;
+$data = json_decode(file_get_contents("php://input"), true);
+
+$id = $data['idClases'];
+$nombre = $data['nombre'];
+$maxestudiante = $data['maxestudiante'] ?? null;
+$privada = $data['privada'];
+$horarioId = $data['Horarios_idHorarios'];
+$nivelId = $data['Niveles_idNivel'];
+$canchas = $data['canchas'];
+
+try {
+    $conexion->begin_transaction();
+
+    $stmt = $conexion->prepare("UPDATE clases SET nombre=?, maxestudiante=?, privada=?, Horarios_idHorarios=?, Niveles_idNivel=?, updatedAt=NOW() WHERE idClases=?");
+    $stmt->bind_param("siiiii", $nombre, $maxestudiante, $privada, $horarioId, $nivelId, $id);
+    $stmt->execute();
+
+    // Borrar relaciones anteriores
+    $conexion->query("DELETE FROM clases_has_canchas WHERE Clases_idClases=$id");
+
+    // Insertar nuevas relaciones
+    $stmtRel = $conexion->prepare("INSERT INTO clases_has_canchas (Clases_idClases, Canchas_idCanchas) VALUES (?, ?)");
+    foreach ($canchas as $idCancha) {
+        $stmtRel->bind_param("ii", $id, $idCancha);
+        $stmtRel->execute();
+    }
+
+    $conexion->commit();
+    echo json_encode(["success" => true, "message" => "Clase modificada correctamente"]);
+} catch (Exception $e) {
+    $conexion->rollback();
+    echo json_encode(["success" => false, "error" => $e->getMessage()]);
 }
-
-// Recibir parámetros por POST
-$idClase = $_POST['idClase'] ?? null;
-$maxestudiante = $_POST['maxestudiante'] ?? null;
-$Nivel_idNivel = $_POST['Nivel_idNivel'] ?? null;
-$Horarios_idHorarios = $_POST['Horarios_idHorarios'] ?? null;
-
-if (!$idClase || !$maxestudiante || !$Nivel_idNivel || !$Horarios_idHorarios) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Faltan datos requeridos']);
-    exit;
-}
-
-$sql = "UPDATE clases SET maxestudiante=?, Nivel_idNivel=?, Horarios_idHorarios=?, updatedAt=NOW() WHERE idClases=? AND deletedAt IS NULL";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("iiii", $maxestudiante, $Nivel_idNivel, $Horarios_idHorarios, $idClase);
-
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Clase modificada']);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Error al modificar clase']);
-}
-
-$stmt->close();
-$conn->close();
 ?>
