@@ -1,27 +1,22 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php'; 
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = intval($_POST["idNivel"]);
-    $tipo = trim($_POST["tipo"]);
+$idNivel = $_POST['idNivel'] ?? null;
+$tipo = $_POST['tipo'] ?? null;
 
-    if ($id > 0 && !empty($tipo)) {
-        $sql = "UPDATE niveles SET tipo = ? WHERE idNivel = ? AND deletedAt IS NULL";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("si", $tipo, $id);
-
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Nivel actualizado correctamente"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Error al actualizar nivel"]);
-        }
-
-        $stmt->close();
-    } else {
-        echo json_encode(["status" => "error", "message" => "Datos inválidos"]);
-    }
+if (!$idNivel || !$tipo) {
+    echo json_encode(["success" => false, "message" => "Faltan datos obligatorios"]);
+    exit;
 }
 
-$conn->close();
+$sql = "UPDATE niveles SET tipo=?, updatedAt=CURRENT_TIMESTAMP WHERE idNivel=? AND deletedAt IS NULL";
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("si", $tipo, $idNivel);
+
+if ($stmt->execute()) {
+    echo json_encode(["success" => true, "message" => "Nivel modificado"]);
+} else {
+    echo json_encode(["success" => false, "message" => "Error al modificar nivel"]);
+}
 ?>

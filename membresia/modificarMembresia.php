@@ -1,29 +1,26 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $id = intval($_POST["idMembresia"]);
-    $tipo = trim($_POST["tipo"]);
-    $clasesPorMes = intval($_POST["clasesPorMes"]);
-    $clasesPagadas = intval($_POST["clasesPagadas"]);
-    $debe = isset($_POST["debe"]) ? intval($_POST["debe"]) : 0;
-    $cantClasesDeuda = isset($_POST["cantClasesDeuda"]) ? intval($_POST["cantClasesDeuda"]) : 0;
+$idMembresia = $_POST['idMembresia'] ?? null;
+$tipo = $_POST['tipo'] ?? null;
+$clasesPorMes = $_POST['clasesPorMes'] ?? null;
+$clasesPagadas = $_POST['clasesPagadas'] ?? null;
+$debe = $_POST['debe'] ?? null;
+$cantClasesDeuda = $_POST['cantClasesDeuda'] ?? null;
 
-    $sql = "UPDATE membresias 
-            SET tipo = ?, clasesPorMes = ?, clasesPagadas = ?, debe = ?, cantClasesDeuda = ?, updatedAt = NOW()
-            WHERE idMembresia = ? AND deletedAt IS NULL";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("siiiii", $tipo, $clasesPorMes, $clasesPagadas, $debe, $cantClasesDeuda, $id);
-
-    if ($stmt->execute()) {
-        echo json_encode(["status" => "success", "message" => "Membresía actualizada correctamente"]);
-    } else {
-        echo json_encode(["status" => "error", "message" => "Error al actualizar membresía"]);
-    }
-
-    $stmt->close();
+if (!$idMembresia) {
+    echo json_encode(["success" => false, "message" => "Falta el id de la membresía"]);
+    exit;
 }
-$conn->close();
+
+$sql = "UPDATE membresias SET tipo=?, clasesPorMes=?, clasesPagadas=?, debe=?, cantClasesDeuda=?, updatedAt=CURRENT_TIMESTAMP WHERE idMembresia=? AND deletedAt IS NULL";
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("siiiii", $tipo, $clasesPorMes, $clasesPagadas, $debe, $cantClasesDeuda, $idMembresia);
+
+if ($stmt->execute()) {
+    echo json_encode(["success" => true, "message" => "Membresía modificada"]);
+} else {
+    echo json_encode(["success" => false, "message" => "Error al modificar membresía"]);
+}
 ?>

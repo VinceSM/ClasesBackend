@@ -1,23 +1,21 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-$id = $_POST['id'] ?? null;
+$idMembresia = $_POST['idMembresia'] ?? null;
 
-if (!$id) {
-    echo json_encode(["success" => false, "message" => "ID de membresía no proporcionado"]);
+if (!$idMembresia) {
+    echo json_encode(["success" => false, "message" => "Falta el id de la membresía"]);
     exit;
 }
 
-$query = "UPDATE membresias SET deleted_at = NOW() WHERE id = ?";
-$stmt = $conexion->prepare($query);
-$stmt->bind_param("i", $id);
+$sql = "UPDATE membresias SET deletedAt = CURRENT_TIMESTAMP WHERE idMembresia=? AND deletedAt IS NULL";
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("i", $idMembresia);
 
 if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Membresía eliminada correctamente"]);
+    echo json_encode(["success" => true, "message" => "Membresía eliminada"]);
 } else {
-    echo json_encode(["success" => false, "message" => "Error al eliminar la membresía"]);
+    echo json_encode(["success" => false, "message" => "Error al eliminar membresía"]);
 }
-
-$stmt->close();
-$conexion->close();
+?>

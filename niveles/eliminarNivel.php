@@ -1,26 +1,21 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php'; 
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = intval($_POST["idNivel"]);
+$idNivel = $_POST['idNivel'] ?? null;
 
-    if ($id > 0) {
-        $sql = "UPDATE niveles SET deletedAt = NOW() WHERE idNivel = ? AND deletedAt IS NULL";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Nivel eliminado correctamente"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Error al eliminar nivel"]);
-        }
-
-        $stmt->close();
-    } else {
-        echo json_encode(["status" => "error", "message" => "ID inválido"]);
-    }
+if (!$idNivel) {
+    echo json_encode(["success" => false, "message" => "Falta el id del nivel"]);
+    exit;
 }
 
-$conn->close();
+$sql = "UPDATE niveles SET deletedAt=CURRENT_TIMESTAMP WHERE idNivel=? AND deletedAt IS NULL";
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("i", $idNivel);
+
+if ($stmt->execute()) {
+    echo json_encode(["success" => true, "message" => "Nivel eliminado"]);
+} else {
+    echo json_encode(["success" => false, "message" => "Error al eliminar nivel"]);
+}
 ?>

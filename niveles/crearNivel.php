@@ -1,26 +1,21 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php'; 
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $tipo = trim($_POST["tipo"]);
+$tipo = $_POST['tipo'] ?? null;
 
-    if (!empty($tipo)) {
-        $sql = "INSERT INTO niveles (tipo) VALUES (?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $tipo);
-
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Nivel creado correctamente"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Error al crear nivel"]);
-        }
-
-        $stmt->close();
-    } else {
-        echo json_encode(["status" => "error", "message" => "El tipo de nivel es obligatorio"]);
-    }
+if (!$tipo) {
+    echo json_encode(["success" => false, "message" => "Falta el tipo de nivel"]);
+    exit;
 }
 
-$conn->close();
+$sql = "INSERT INTO niveles (tipo) VALUES (?)";
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("s", $tipo);
+
+if ($stmt->execute()) {
+    echo json_encode(["success" => true, "message" => "Nivel creado", "idNivel" => $stmt->insert_id]);
+} else {
+    echo json_encode(["success" => false, "message" => "Error al crear nivel"]);
+}
 ?>
