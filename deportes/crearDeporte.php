@@ -1,25 +1,22 @@
 <?php
-require_once "conexion.php";
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nombre = trim($_POST["nombre"]);
+$data = json_decode(file_get_contents("php://input"));
 
-    if (!empty($nombre)) {
-        $sql = "INSERT INTO deportes (nombre) VALUES (?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $nombre);
+if (!empty($data->nombre)) {
+    $stmt = $conexion->prepare("INSERT INTO deportes (nombre) VALUES (?)");
+    $stmt->bind_param("s", $data->nombre);
 
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Deporte creado correctamente"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Error al crear deporte"]);
-        }
-
-        $stmt->close();
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Deporte creado correctamente"]);
     } else {
-        echo json_encode(["status" => "error", "message" => "El nombre es obligatorio"]);
+        echo json_encode(["success" => false, "message" => "Error al crear deporte"]);
     }
-}
 
-$conn->close();
+    $stmt->close();
+} else {
+    echo json_encode(["success" => false, "message" => "Falta el nombre"]);
+}
+$conexion->close();
 ?>

@@ -1,8 +1,12 @@
 <?php
-require_once "conexion.php";
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-$sql = "SELECT nombre FROM deportes WHERE deletedAt IS NULL";
-$result = $conn->query($sql);
+$sql = "SELECT idDeportes, nombre 
+        FROM deportes 
+        WHERE deletedAt IS NULL OR deletedAt IS NULL"; // por si usas soft delete
+
+$result = $conexion->query($sql);
 
 $deportes = [];
 while ($row = $result->fetch_assoc()) {
@@ -11,5 +15,5 @@ while ($row = $result->fetch_assoc()) {
 
 echo json_encode($deportes);
 
-$conn->close();
+$conexion->close();
 ?>

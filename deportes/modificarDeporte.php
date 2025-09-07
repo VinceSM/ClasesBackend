@@ -1,26 +1,22 @@
 <?php
-require_once "conexion.php";
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = intval($_POST["idDeportes"]);
-    $nombre = trim($_POST["nombre"]);
+$data = json_decode(file_get_contents("php://input"));
 
-    if ($id > 0 && !empty($nombre)) {
-        $sql = "UPDATE deportes SET nombre = ? WHERE idDeportes = ? AND deletedAt IS NULL";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("si", $nombre, $id);
+if (!empty($data->idDeportes) && !empty($data->nombre)) {
+    $stmt = $conexion->prepare("UPDATE deportes SET nombre = ? WHERE idDeportes = ?");
+    $stmt->bind_param("si", $data->nombre, $data->idDeportes);
 
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Deporte actualizado correctamente"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Error al actualizar deporte"]);
-        }
-
-        $stmt->close();
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Deporte modificado correctamente"]);
     } else {
-        echo json_encode(["status" => "error", "message" => "Datos inválidos"]);
+        echo json_encode(["success" => false, "message" => "Error al modificar deporte"]);
     }
-}
 
-$conn->close();
+    $stmt->close();
+} else {
+    echo json_encode(["success" => false, "message" => "Faltan datos"]);
+}
+$conexion->close();
 ?>

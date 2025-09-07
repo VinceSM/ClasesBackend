@@ -1,25 +1,22 @@
 <?php
-require_once "conexion.php";
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
+$data = json_decode(file_get_contents("php://input"));
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = intval($_POST["idDeportes"]);
+if (!empty($data->idDeportes)) {
+    // Soft delete
+    $stmt = $conexion->prepare("UPDATE deportes SET deletedAt = NOW() WHERE idDeportes = ?");
+    $stmt->bind_param("i", $data->idDeportes);
 
-    if ($id > 0) {
-        $sql = "UPDATE deportes SET deletedAt = NOW() WHERE idDeportes = ? AND deletedAt IS NULL";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Deporte eliminado correctamente"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Error al eliminar deporte"]);
-        }
-
-        $stmt->close();
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Deporte eliminado correctamente"]);
     } else {
-        echo json_encode(["status" => "error", "message" => "ID inválido"]);
+        echo json_encode(["success" => false, "message" => "Error al eliminar deporte"]);
     }
-}
 
-$conn->close();
+    $stmt->close();
+} else {
+    echo json_encode(["success" => false, "message" => "Faltan datos"]);
+}
+$conexion->close();
 ?>
