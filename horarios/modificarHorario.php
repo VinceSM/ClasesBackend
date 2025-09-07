@@ -1,29 +1,36 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $id = intval($_POST["idHorarios"]);
-    $fecha = $_POST["fecha"];
-    $dia = $_POST["dia"];
-    $inicio = $_POST["inicio"];
-    $fin = $_POST["fin"];
-    $disponible = isset($_POST["disponible"]) ? intval($_POST["disponible"]) : 0;
-    $estadoId = intval($_POST["Estados_idEstados"]);
+$idHorario = $_POST['idHorarios'] ?? null;
+$fecha = $_POST['fecha'] ?? null;
+$dia = $_POST['dia'] ?? null;
+$inicio = $_POST['inicio'] ?? null;
+$fin = $_POST['fin'] ?? null;
+$disponible = $_POST['disponible'] ?? null;
+$estado = $_POST['Estados_idEstados'] ?? null;
 
-    $sql = "UPDATE horarios 
-            SET fecha = ?, dia = ?, inicio = ?, fin = ?, disponible = ?, Estados_idEstados = ?, updatedAt = NOW() 
-            WHERE idHorarios = ? AND deletedAt IS NULL";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssiii", $fecha, $dia, $inicio, $fin, $disponible, $estadoId, $id);
-
-    if ($stmt->execute()) {
-        echo json_encode(["status" => "success", "message" => "Horario actualizado correctamente"]);
-    } else {
-        echo json_encode(["status" => "error", "message" => "Error al actualizar horario"]);
-    }
-
-    $stmt->close();
+if (!$idHorario) {
+    echo json_encode(["success" => false, "message" => "Falta el id del horario"]);
+    exit;
 }
-$conn->close();
+
+$sql = "UPDATE horarios SET 
+            fecha = ?, 
+            dia = ?, 
+            inicio = ?, 
+            fin = ?, 
+            disponible = ?, 
+            Estados_idEstados = ?, 
+            updatedAt = CURRENT_TIMESTAMP 
+        WHERE idHorarios = ? AND deletedAt IS NULL";
+
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("ssssiii", $fecha, $dia, $inicio, $fin, $disponible, $estado, $idHorario);
+
+if ($stmt->execute()) {
+    echo json_encode(["success" => true, "message" => "Horario modificado"]);
+} else {
+    echo json_encode(["success" => false, "message" => "Error al modificar horario"]);
+}
 ?>

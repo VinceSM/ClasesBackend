@@ -1,27 +1,27 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
+require_once __DIR__ . '/../headerCors.php';
 require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $fecha = $_POST["fecha"];
-    $dia = $_POST["dia"];
-    $inicio = $_POST["inicio"];
-    $fin = $_POST["fin"];
-    $disponible = isset($_POST["disponible"]) ? intval($_POST["disponible"]) : 0;
-    $estadoId = intval($_POST["Estados_idEstados"]);
+// Recibimos los datos por POST
+$fecha = $_POST['fecha'] ?? null;
+$dia = $_POST['dia'] ?? null;
+$inicio = $_POST['inicio'] ?? null;
+$fin = $_POST['fin'] ?? null;
+$disponible = $_POST['disponible'] ?? 0;
+$estado = $_POST['Estados_idEstados'] ?? null;
 
-    $sql = "INSERT INTO horarios (fecha, dia, inicio, fin, disponible, Estados_idEstados) 
-            VALUES (?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssii", $fecha, $dia, $inicio, $fin, $disponible, $estadoId);
-
-    if ($stmt->execute()) {
-        echo json_encode(["status" => "success", "message" => "Horario creado correctamente"]);
-    } else {
-        echo json_encode(["status" => "error", "message" => "Error al crear horario"]);
-    }
-
-    $stmt->close();
+if (!$fecha || !$dia || !$inicio || !$fin || !$estado) {
+    echo json_encode(["success" => false, "message" => "Faltan datos obligatorios"]);
+    exit;
 }
-$conn->close();
+
+$sql = "INSERT INTO horarios (fecha, dia, inicio, fin, disponible, Estados_idEstados) VALUES (?, ?, ?, ?, ?, ?)";
+$stmt = $conexion->prepare($sql);
+$stmt->bind_param("ssssii", $fecha, $dia, $inicio, $fin, $disponible, $estado);
+
+if ($stmt->execute()) {
+    echo json_encode(["success" => true, "message" => "Horario creado", "idHorarios" => $stmt->insert_id]);
+} else {
+    echo json_encode(["success" => false, "message" => "Error al crear horario"]);
+}
 ?>
