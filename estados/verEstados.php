@@ -1,20 +1,14 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php'; 
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-try {
-    $resultado = $conexion->query("SELECT estado FROM estados");
+$sql = "SELECT idEstado, estado FROM estados";
+$result = $conexion->query($sql);
 
-    $estados = [];
-    while ($fila = $resultado->fetch_assoc()) {
-        $estados[] = $fila;
-    }
-
-    echo json_encode($estados);
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        "error" => "Error al obtener estados",
-        "detalle" => $e->getMessage()
-    ]);
+$estados = [];
+while ($row = $result->fetch_assoc()) {
+    $estados[] = $row;
 }
+
+echo json_encode($estados);
+?>

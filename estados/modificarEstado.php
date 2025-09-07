@@ -1,27 +1,19 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php'; 
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = intval($_POST["idEstados"]);
-    $estado = trim($_POST["estado"]);
+$data = json_decode(file_get_contents("php://input"), true);
 
-    if ($id > 0 && !empty($estado)) {
-        $sql = "UPDATE estados SET estado = ? WHERE idEstados = ? AND deletedAt IS NULL";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("si", $estado, $id);
+$idEstado = $data['idEstado'];
+$estado = $data['estado'];
 
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Estado actualizado correctamente"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Error al actualizar estado"]);
-        }
+try {
+    $stmt = $conexion->prepare("UPDATE estados SET estado=? WHERE idEstado=?");
+    $stmt->bind_param("si", $estado, $idEstado);
+    $stmt->execute();
 
-        $stmt->close();
-    } else {
-        echo json_encode(["status" => "error", "message" => "Datos inválidos"]);
-    }
+    echo json_encode(["success" => true, "message" => "Estado modificado correctamente"]);
+} catch (Exception $e) {
+    echo json_encode(["success" => false, "error" => $e->getMessage()]);
 }
-
-$conn->close();
 ?>

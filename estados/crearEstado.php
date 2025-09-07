@@ -1,26 +1,17 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php'; 
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $estado = trim($_POST["estado"]);
+$data = json_decode(file_get_contents("php://input"), true);
+$estado = $data['estado'];
 
-    if (!empty($estado)) {
-        $sql = "INSERT INTO estados (estado) VALUES (?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $estado);
+try {
+    $stmt = $conexion->prepare("INSERT INTO estados (estado) VALUES (?)");
+    $stmt->bind_param("s", $estado);
+    $stmt->execute();
 
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Estado creado correctamente"]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Error al crear estado"]);
-        }
-
-        $stmt->close();
-    } else {
-        echo json_encode(["status" => "error", "message" => "El estado es obligatorio"]);
-    }
+    echo json_encode(["success" => true, "message" => "Estado creado correctamente"]);
+} catch (Exception $e) {
+    echo json_encode(["success" => false, "error" => $e->getMessage()]);
 }
-
-$conn->close();
 ?>

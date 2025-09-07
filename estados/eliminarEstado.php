@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../admin/headerCors.php';
-require_once __DIR__ . '/../conexion.php'; 
+require_once __DIR__ . '/../headerCors.php';
+require_once __DIR__ . '/../conexion.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = intval($_POST["idEstados"]);
